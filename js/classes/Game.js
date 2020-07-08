@@ -1,6 +1,7 @@
 import config from '../config/game.js';
 import data from '../config/save-data.js';
 import tickers from '../config/tickers.js';
+import ticker_upgrades from '../config/ticker-upgrades.js';
 import resources from '../config/resources.js';
 
 export class Game
@@ -11,6 +12,7 @@ export class Game
 		this.data = data;
 		this.resources = resources;
 		this.tickers = tickers;
+		this.ticker_upgrades = ticker_upgrades;
 
 		Object.keys(resources).forEach((resource) => {
 			this.data.resource_maximums[resource] = this.resources[resource].max;

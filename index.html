@@ -4,9 +4,11 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="stylesheet" type="text/css" href="css/core.css">
 	<link rel="stylesheet" type="text/css" href="css/specific.css">
-	<title>Incremental Framework</title>
+	<title>js-incremental-framework</title>
 </head>
 <body>
+
+	<h1>js-incremental-framework</h1>
 
 	<div class="bar_container">
 		<div class="bar_inner" id="resources_cookies_bar_inner"></div>
@@ -42,7 +44,9 @@
  	<p><button onclick="doTick('goblin')">Pick a goblin's nose</button></p>
 
 	<p>
-		<button id="tickers_baker_purchase_btn" onclick="purchaseTicker('baker')">Add an automatic cookie baker</button>
+		<button id="tickers_baker_purchase_btn" onclick="purchaseTicker('baker')">
+			Add an automatic cookie baker
+		</button>
 	</p>
  	<ul>
 		<li>Owned: <span id="tickers_baker_amount">0</span></li>
@@ -52,7 +56,9 @@
 	</ul>
 
  	<p>
-		<button id="tickers_unicorn_purchase_btn" onclick="purchaseTicker('unicorn');">Hire a unicorn (eats cookies and shits)</button>
+		<button id="tickers_unicorn_purchase_btn" onclick="purchaseTicker('unicorn');">
+			Hire a unicorn (eats a cookie and then shits)
+		</button>
 	</p>
 	<ul>
 		<li>Owned: <span id="tickers_unicorn_amount">0</span></li>
@@ -63,6 +69,7 @@
 
 
  	<p><button onclick="game.data.resources.cookies = 0; game.updateResources();">Eat all your cookies</button></p>
+	<p><button onclick="game.data.resources.unicorn_shit = 0; game.updateResources();">Toss unicorn shit in a volcano</button></p>
 
 
 
@@ -96,6 +103,7 @@ window.game = game;
 window.doTick = (ticker_type) => {
 	game.tickers[ticker_type].tick();
 	game.updateResources();
+	game.updateTickers();
 };
 
 window.purchaseTicker = (ticker_type) => {

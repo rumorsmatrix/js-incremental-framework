@@ -13,9 +13,10 @@ export default
 		'unicorn_shit': 0,
 	},
 
-	'resource_maximums': {
+	// you can (and should) leave this empty, as the defaults are populated from config/resources.js
+	'resource_maximums': {},
 
-	},
-
+	// which tickers and upgrades the player has purchased
 	'tickers': {},
+	'ticker_upgrades': {},
 }
