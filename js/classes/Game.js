@@ -1,28 +1,30 @@
 import config from '../config/game.js';
 import data from '../config/save-data.js';
 import tickers from '../config/tickers.js';
-import ticker_upgrades from '../config/ticker-upgrades.js';
 import resources from '../config/resources.js';
 
 export class Game
 {
 	constructor()
 	{
+		// defaults, then overridden by config/game.js
+		this.tick_interval = 1000;
+		this.animation_interval = 1000;
 		Object.keys(config).forEach((key) => this[key] = config[key]);
+
+		// assign values from config data
 		this.data = data;
 		this.resources = resources;
 		this.tickers = tickers;
-		this.ticker_upgrades = ticker_upgrades;
 
 		Object.keys(resources).forEach((resource) => {
 			this.data.resource_maximums[resource] = this.resources[resource].max;
 		})
 	}
 
-	purchaseTicker(type)
+	canAffordThing(thing)
 	{
-		let ticker = game.tickers[type];
-		let purchase_costs = ticker.getPurchaseCosts(this.data);
+		let purchase_costs = thing.getPurchaseCosts(this.data);
 		let can_afford = true;
 
 		Object.keys(purchase_costs).forEach((cost) => {
@@ -31,15 +33,42 @@ export class Game
 			}
 		});
 
-		if (!can_afford) return false;
+		return can_afford;
+	}
 
-		game.addTicker(type);
+	purchaseTicker(type)
+	{
+		let ticker = game.tickers[type];
+		if (!this.canAffordThing(ticker)) return false;
+		let purchase_costs = ticker.getPurchaseCosts(this.data);
+
 		Object.keys(purchase_costs).forEach((cost) => {
 			this.data.resources[cost] = this.data.resources[cost] - purchase_costs[cost];
 		});
 
+		game.addTicker(type);
 		return true;
 	}
+
+	purchaseTickerUpgrade(ticker_type, upgrade_type)
+	{
+		let ticker = this.tickers[ticker_type];
+		let upgrade = ticker.upgrades[upgrade_type];
+
+		// must have at least one of the parent ticker to upgrade
+		if (this.data.tickers[ticker_type] === undefined || this.data.tickers[ticker_type] === 0) return false;
+
+		if (!this.canAffordThing(upgrade)) return false;
+		let purchase_costs = upgrade.getPurchaseCosts(this.data);
+
+		Object.keys(purchase_costs).forEach((cost) => {
+			this.data.resources[cost] = this.data.resources[cost] - purchase_costs[cost];
+		});
+
+		game.addTickerUpgrade(upgrade_type);
+		return true;
+	}
+
 
 	addTicker(type)
 	{
@@ -49,12 +78,21 @@ export class Game
 		return this;
 	}
 
+	addTickerUpgrade(type)
+	{
+		if (this.data.ticker_upgrades[type] === undefined) this.data.ticker_upgrades[type] = 0;
+		this.data.ticker_upgrades[type] = this.data.ticker_upgrades[type] + 1;
+		this.updateTickers();
+		return this;
+	}
+
+
 	getResourcesPerTick()
 	{
 		let resources_per_tick = {};
 
 		Object.keys(this.data.tickers).forEach((ticker_type) => {
-			let new_resources_per_tick = this.tickers[ticker_type].getResourcesPerTick();
+			let new_resources_per_tick = this.tickers[ticker_type].getResourcesPerTick(this.data);
 
 			Object.keys(new_resources_per_tick).forEach((resource) => {
 				if (resources_per_tick[resource] === undefined) resources_per_tick[resource] = 0;

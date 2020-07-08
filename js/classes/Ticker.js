@@ -7,6 +7,7 @@ export class Ticker
 		this.internal_name = internal_name;
 		this.purchase_costs = [];
 		this.resource_adjusters = [];
+		this.upgrades = {};
 	}
 
 	addPurchaseCost(adjuster)
@@ -21,7 +22,13 @@ export class Ticker
 		return this;
 	}
 
-	getResourcesPerTick()
+	addUpgrade(upgrade)
+	{
+		this.upgrades[upgrade.internal_name] = upgrade;
+		return this;
+	}
+
+	getResourcesPerTick(data)
 	{
 		let resources_per_tick = {};
 		this.resource_adjusters.forEach((adjuster) => {
@@ -29,8 +36,8 @@ export class Ticker
 				resources_per_tick[adjuster.resource] = 0;
 			}
 
-			let amount = adjuster.amount_per_tick;
-			if (game.data.resources[adjuster.resource] === game.data.resource_maximums[adjuster.resource]) amount = 0;
+			let amount = adjuster.getAmountPerTick(this.upgrades, data);
+			if (data.resources[adjuster.resource] === data.resource_maximums[adjuster.resource]) amount = 0;
 			resources_per_tick[adjuster.resource] = resources_per_tick[adjuster.resource] + amount;
 		});
 
@@ -45,7 +52,7 @@ export class Ticker
 	tick(data)
 	{
 		let diff = 0;
-		this.resource_adjusters.forEach((adjuster) => diff += adjuster.apply(data));
+		this.resource_adjusters.forEach((adjuster) => diff += adjuster.apply(this.upgrades, data));
 		return diff;
 	}
 
@@ -60,19 +67,37 @@ export class ResourceAdjuster
 		this.amount_per_tick = amount_per_tick;
 	}
 
-	apply()
+	getAmountPerTick(upgrades, data)
 	{
-		if (game.data.resources[this.resource] === undefined) game.data.resources[this.resource] = 0;
+		// start with the base amount this ResourceAdjuster provides
 		let amount = this.amount_per_tick;
-		if (game.data.resource_maximums[this.resource] !== undefined) {
-			let max = game.data.resource_maximums[this.resource];
 
-			if ((game.data.resources[this.resource] + this.amount_per_tick) >= max) {
-				amount = max - game.data.resources[this.resource];
+		// look for suitable upgrades
+		Object.keys(data.ticker_upgrades).forEach((purchased_upgrade) => {
+			if (data.ticker_upgrades[purchased_upgrade] > 0 && upgrades[purchased_upgrade] !== undefined) {
+
+				// apply bonus from this matching upgrade
+				amount = amount + (10 * data.ticker_upgrades[purchased_upgrade]);
+			}
+		});
+
+		return amount;
+	}
+
+	apply(upgrades, data)
+	{
+		if (data.resources[this.resource] === undefined) data.resources[this.resource] = 0;
+		let amount = this.getAmountPerTick(upgrades, data);
+
+		if (data.resource_maximums[this.resource] !== undefined) {
+			let max = data.resource_maximums[this.resource];
+
+			if ((data.resources[this.resource] + amount) >= max) {
+				amount = max - data.resources[this.resource];
 			}
 		}
 
-		game.data.resources[this.resource] = game.data.resources[this.resource] + amount;
+		data.resources[this.resource] = data.resources[this.resource] + amount;
 		return amount;
 	}
 }

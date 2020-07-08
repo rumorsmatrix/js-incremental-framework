@@ -39,15 +39,21 @@
 	</div>
 
 
- 	<p><button onclick="doTick('baker')">Bake a cookie</button></p>
-
- 	<p><button onclick="doTick('goblin')">Pick a goblin's nose</button></p>
+ 	<p>
+		<button onclick="doTick('baker')">Bake a cookie</button>
+		<button onclick="doTick('goblin')">Pick a goblin's nose</button>
+	</p>
 
 	<p>
 		<button id="tickers_baker_purchase_btn" onclick="purchaseTicker('baker')">
 			Add an automatic cookie baker
 		</button>
+
+		<button id="ticker_upgrades_super_oven_purchase_btn" onclick="purchaseTickerUpgrade('baker', 'super_oven')">
+			Purchase a Super Oven
+		</button>
 	</p>
+
  	<ul>
 		<li>Owned: <span id="tickers_baker_amount">0</span></li>
 		<li>
@@ -67,9 +73,10 @@
 		</li>
 	</ul>
 
-
- 	<p><button onclick="game.data.resources.cookies = 0; game.updateResources();">Eat all your cookies</button></p>
-	<p><button onclick="game.data.resources.unicorn_shit = 0; game.updateResources();">Toss unicorn shit in a volcano</button></p>
+ 	<p>
+		<button onclick="game.data.resources.cookies = 0; game.updateResources();">Eat all your cookies</button>
+		<button onclick="game.data.resources.unicorn_shit = 0; game.updateResources();">Toss unicorn shit in a volcano</button>
+	</p>
 
 
 
@@ -101,13 +108,19 @@ setInterval(() => {
 window.game = game;
 
 window.doTick = (ticker_type) => {
-	game.tickers[ticker_type].tick();
+	game.tickers[ticker_type].tick(game.data);
 	game.updateResources();
 	game.updateTickers();
 };
 
 window.purchaseTicker = (ticker_type) => {
 	game.purchaseTicker(ticker_type);
+	game.updateResources();
+	game.updateTickers();
+};
+
+window.purchaseTickerUpgrade = (ticker_type, upgrade_type) => {
+	game.purchaseTickerUpgrade(ticker_type, upgrade_type);
 	game.updateResources();
 	game.updateTickers();
 };

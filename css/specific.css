@@ -10,16 +10,3 @@
     background: #4c4 linear-gradient(to right, #2b2, #4b4);
     width: 100%;
 }
-
-#tickers_baker_purchase_btn,
-#tickers_goblin_purchase_btn,
-#tickers_unicorn_purchase_btn {
-    opacity: 1;
-    transition: opacity 0.6s;
-}
-
-#tickers_baker_purchase_btn:disabled,
-#tickers_goblin_purchase_btn:disabled,
-#tickers_unicorn_purchase_btn:disabled {
-    opacity: 0.65;
-}
