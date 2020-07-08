@@ -9,7 +9,9 @@ export default
 		.addResourceAdjuster( new ResourceAdjuster('cookies', 1))
 		.addUpgrade(
 			new TickerUpgrade('super_oven')
-				.addPurchaseCost( new PurchaseCost('cookies', 1, 1.15)),
+				.addPurchaseCost( new PurchaseCost('cookies', 1, 1.15))
+				.setFlatBonus(1)
+				.setMultiplier(0),
 		),
 
 	'goblin': new Ticker('goblin')

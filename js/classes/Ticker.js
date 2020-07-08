@@ -77,7 +77,11 @@ export class ResourceAdjuster
 			if (data.ticker_upgrades[purchased_upgrade] > 0 && upgrades[purchased_upgrade] !== undefined) {
 
 				// apply bonus from this matching upgrade
-				amount = amount + (10 * data.ticker_upgrades[purchased_upgrade]);
+				let upgrade = upgrades[purchased_upgrade];
+				let number_purchased = data.ticker_upgrades[purchased_upgrade];
+
+				amount = amount + (upgrade.getFlatBonus() * number_purchased);
+				if (upgrade.getMultiplier()) amount = amount * (upgrade.getMultiplier() * number_purchased);
 			}
 		});
 
