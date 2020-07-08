@@ -1,6 +1,8 @@
 body {
     margin: 2rem auto;
     max-width: 700px;
+    opacity: 0;
+    transition: opacity 2s;
 }
 
 h1, h2, h3 {

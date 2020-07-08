@@ -3,10 +3,23 @@
 }
 
 #resources_unicorn_shit_bar_inner {
-    background: #e44 linear-gradient(to right, #b4b, #a3a);
+    background: #b4b linear-gradient(to right, #b4b, #a3a);
 }
 
 #resources_goblin_snot_bar_inner {
     background: #4c4 linear-gradient(to right, #2b2, #4b4);
     width: 100%;
+}
+
+#tickers_baker_purchase_btn,
+#tickers_goblin_purchase_btn,
+#tickers_unicorn_purchase_btn {
+    opacity: 1;
+    transition: opacity 0.6s;
+}
+
+#tickers_baker_purchase_btn:disabled,
+#tickers_goblin_purchase_btn:disabled,
+#tickers_unicorn_purchase_btn:disabled {
+    opacity: 0.65;
 }

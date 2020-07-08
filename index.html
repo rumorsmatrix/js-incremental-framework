@@ -90,10 +90,6 @@ setInterval(() => {
 }, game.animation_interval);
 
 
-// to prevent "pop-in" on initial load
-game.updateResources();
-game.updateTickers();
-
 // add hooks and helper functions
 window.game = game;
 
@@ -105,7 +101,16 @@ window.doTick = (ticker_type) => {
 window.purchaseTicker = (ticker_type) => {
 	game.purchaseTicker(ticker_type);
 	game.updateResources();
+	game.updateTickers();
 };
+
+
+// to prevent "pop-in" on initial load
+(() => {
+	game.updateResources();
+	game.updateTickers();
+	document.body.style.opacity = '1';
+})();
 
 
 </script>

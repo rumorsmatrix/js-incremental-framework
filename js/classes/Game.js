@@ -156,7 +156,6 @@ export class Game
 				}
 			});
 
-
 			elem = document.getElementById('tickers_' + ticker + '_cost');
 			if (elem) {
 				let str = '<ul>';
@@ -174,11 +173,7 @@ export class Game
 			}
 
 			elem = document.getElementById('tickers_' + ticker + '_purchase_btn');
-			if (elem) {
-				console.log(!can_purchase);
-				elem.disabled = !can_purchase;
-			}
-
+			if (elem) elem.disabled = !can_purchase;
 		});
 	}
 
