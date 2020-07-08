@@ -1,0 +1,12 @@
+#resources_cookies_bar_inner {
+    background: #e44 linear-gradient(to right, #c33, #e55);
+}
+
+#resources_unicorn_shit_bar_inner {
+    background: #e44 linear-gradient(to right, #b4b, #a3a);
+}
+
+#resources_goblin_snot_bar_inner {
+    background: #4c4 linear-gradient(to right, #2b2, #4b4);
+    width: 100%;
+}

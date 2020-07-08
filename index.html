@@ -1,0 +1,113 @@
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" type="text/css" href="css/core.css">
+	<link rel="stylesheet" type="text/css" href="css/specific.css">
+	<title>Incremental Framework</title>
+</head>
+<body>
+
+	<div class="bar_container">
+		<div class="bar_inner" id="resources_cookies_bar_inner"></div>
+		<div class="bar_text">
+			<strong>Cookies:</strong>
+			<span id="resources_cookies_amount"></span>/<span id="resources_cookies_max"></span>
+			(<span id="resources_cookies_per_tick"></span>)
+			<span id="resources_cookies_percent_owned">0.0%</span>
+		</div>
+	</div>
+
+	<div class="bar_container">
+		<div class="bar_inner" id="resources_goblin_snot_bar_inner"></div>
+		<div class="bar_text">
+			<strong>Goblin snot:</strong>
+			<span id="resources_goblin_snot_amount"></span>
+		</div>
+	</div>
+
+	<div class="bar_container">
+		<div class="bar_inner" id="resources_unicorn_shit_bar_inner"></div>
+		<div class="bar_text">
+			<strong>Unicorn shit:</strong>
+			<span id="resources_unicorn_shit_amount"></span>/<span id="resources_unicorn_shit_max"></span>
+			(<span id="resources_unicorn_shit_per_tick"></span>)
+			<span id="resources_unicorn_shit_percent_owned">0.0%</span>
+		</div>
+	</div>
+
+
+ 	<p><button onclick="doTick('baker')">Bake a cookie</button></p>
+
+ 	<p><button onclick="doTick('goblin')">Pick a goblin's nose</button></p>
+
+	<p>
+		<button id="tickers_baker_purchase_btn" onclick="purchaseTicker('baker')">Add an automatic cookie baker</button>
+	</p>
+ 	<ul>
+		<li>Owned: <span id="tickers_baker_amount">0</span></li>
+		<li>
+			Cost to purchase: <span id="tickers_baker_cost"></span>
+		</li>
+	</ul>
+
+ 	<p>
+		<button id="tickers_unicorn_purchase_btn" onclick="purchaseTicker('unicorn');">Hire a unicorn (eats cookies and shits)</button>
+	</p>
+	<ul>
+		<li>Owned: <span id="tickers_unicorn_amount">0</span></li>
+		<li>
+			Cost to purchase: <span id="tickers_unicorn_cost">0</span>
+		</li>
+	</ul>
+
+
+ 	<p><button onclick="game.data.resources.cookies = 0; game.updateResources();">Eat all your cookies</button></p>
+
+
+
+<script type="module">
+
+import {Game} from "./js/classes/Game.js";
+let game = new Game();
+
+// Main game loop
+setInterval(() => {
+	Object.keys(game.data.tickers).forEach((tickers_type) => {
+		for (let i = 0; i < game.data.tickers[tickers_type]; i++) {
+			game.tickers[tickers_type].tick(game.data);
+		}
+	});
+
+}, game.tick_interval);
+
+
+// UI update/animation interval
+setInterval(() => {
+	game.updateResources();
+	game.updateTickers();
+
+}, game.animation_interval);
+
+
+// to prevent "pop-in" on initial load
+game.updateResources();
+game.updateTickers();
+
+// add hooks and helper functions
+window.game = game;
+
+window.doTick = (ticker_type) => {
+	game.tickers[ticker_type].tick();
+	game.updateResources();
+};
+
+window.purchaseTicker = (ticker_type) => {
+	game.purchaseTicker(ticker_type);
+	game.updateResources();
+};
+
+
+</script>
+</body>
+</html>
