@@ -144,19 +144,28 @@ export class Game
 
 		Object.keys(this.data.resources).forEach((resource) => {
 			let elem_amount = document.getElementById('resources_'+ resource + '_amount');
-			if (elem_amount) elem_amount.innerHTML = this.data.resources[resource].toFixed(0);
+			if (elem_amount) elem_amount.innerHTML = this.data.resources[resource].toLocaleString(undefined, {
+				minimumFractionDigits: 0,
+				maximumFractionDigits: 0
+			});
 
 			let elem_per_tick = document.getElementById('resources_'+ resource + '_per_tick');
 			if (elem_per_tick) {
 				if (resources_per_tick[resources_per_tick] === undefined) resources_per_tick[resources_per_tick] = 0;
 				let rpt = (resources_per_tick[resource] * (1000 / this.tick_interval));
 				if (isNaN(rpt)) rpt = 0;
-				elem_per_tick.innerHTML = rpt.toFixed() + '/s';
+				elem_per_tick.innerHTML = rpt.toLocaleString(undefined, {
+					minimumFractionDigits: 0,
+					maximumFractionDigits: 0
+				}) + '/s';
 			}
 
 			if (this.data.resource_maximums[resource] !== undefined) {
 				let elem_per_tick = document.getElementById('resources_'+ resource + '_max');
-				if (elem_per_tick) elem_per_tick.innerHTML = this.data.resource_maximums[resource];
+				if (elem_per_tick) elem_per_tick.innerHTML = this.data.resource_maximums[resource].toLocaleString(undefined, {
+					minimumFractionDigits: 0,
+					maximumFractionDigits: 0
+				});
 			}
 
 			// update percentages and progress bars
