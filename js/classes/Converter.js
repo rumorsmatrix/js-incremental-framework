@@ -2,13 +2,13 @@ import {Ticker} from './Ticker.js';
 
 export class Converter extends Ticker {
 
-	tick()
+	tick(data)
 	{
-		if (!this.canProduce()) return;
-		this.resource_adjusters.forEach((adjuster) => adjuster.apply());
+		if (!this.canProduce(data)) return;
+		this.resource_adjusters.forEach((adjuster) => adjuster.apply(this.upgrades, data));
 	}
 
-	getResourcesPerTick()
+	getResourcesPerTick(data)
 	{
 		let resources_per_tick = {};
 		this.resource_adjusters.forEach((adjuster) => {
@@ -16,9 +16,9 @@ export class Converter extends Ticker {
 				resources_per_tick[adjuster.resource] = 0;
 			}
 
-			let amount = adjuster.amount_per_tick;
-			if (game.data.resources[adjuster.resource] === game.data.resource_maximums[adjuster.resource]) amount = 0;
-			if (!this.canProduce()) amount = 0;
+			let amount = adjuster.getAmountPerTick(this.upgrades, data);
+			if (game.data.resources[adjuster.resource] === data.resource_maximums[adjuster.resource]) amount = 0;
+			if (!this.canProduce(data)) amount = 0;
 
 			resources_per_tick[adjuster.resource] = resources_per_tick[adjuster.resource] + amount;
 		});
@@ -26,21 +26,20 @@ export class Converter extends Ticker {
 		return resources_per_tick;
 	}
 
-	canProduce()
+	canProduce(data)
 	{
-
 		let can_produce = true;
 		this.resource_adjusters.forEach((adjuster) => {
 			if (adjuster.amount_per_tick < 0
-				&& (game.data.resources[adjuster.resource] === undefined
-					|| game.data.resources[adjuster.resource] < (adjuster.amount_per_tick *-1))
+				&& (data.resources[adjuster.resource] === undefined
+					|| data.resources[adjuster.resource] < (adjuster.getAmountPerTick(this.upgrades, data) *-1))
 			) {
 				can_produce =  false;
 			}
 
 			if (adjuster.amount_per_tick > 0
-				&& (game.data.resources[adjuster.resource] === undefined
-					|| game.data.resources[adjuster.resource] === game.data.resource_maximums[adjuster.resource])
+				&& (data.resources[adjuster.resource] === undefined
+					|| data.resources[adjuster.resource] === data.resource_maximums[adjuster.resource])
 			) {
 				can_produce = false;
 			}
