@@ -205,8 +205,8 @@ export class Game
 				let rpt = (resources_per_tick[resource] * (1000 / this.tick_interval));
 				if (isNaN(rpt)) rpt = 0;
 				elem_per_tick.innerHTML = rpt.toLocaleString(undefined, {
-					minimumFractionDigits: 0,
-					maximumFractionDigits: 0
+					minimumFractionDigits: 2,
+					maximumFractionDigits: 2
 				}) + '/s';
 			}
 
@@ -290,7 +290,15 @@ export class Game
 		}
 
 		elem = document.getElementById(element_prefix + thing_index + '_purchase_btn');
-		if (elem) elem.disabled = !can_afford_whole_purchase;
+		if (elem) {
+			if (!can_afford_whole_purchase) {
+				elem.disabled = true;
+				elem.classList.add('disabled');
+			} else {
+				elem.disabled = false;
+				elem.classList.remove('disabled');
+			}
+		}
 
 		let number_owned = (data_storage[thing_index] !== undefined) ? data_storage[thing_index] : 0;
 		let maximum_purchases = thing.getMaximumPurchases();
