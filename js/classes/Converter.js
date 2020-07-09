@@ -2,13 +2,13 @@ import {Ticker} from './Ticker.js';
 
 export class Converter extends Ticker {
 
-	tick(data)
+	tick(data, game)
 	{
-		if (!this.canProduce(data)) return;
+		if (!this.canProduce(data, game)) return;
 		this.resource_adjusters.forEach((adjuster) => adjuster.apply(this.upgrades, data));
 	}
 
-	getResourcesPerTick(data)
+	getResourcesPerTick(data, game)
 	{
 		let resources_per_tick = {};
 		this.resource_adjusters.forEach((adjuster) => {
@@ -17,8 +17,8 @@ export class Converter extends Ticker {
 			}
 
 			let amount = adjuster.getAmountPerTick(this.upgrades, data);
-			if (game.data.resources[adjuster.resource] === data.resource_maximums[adjuster.resource]) amount = 0;
-			if (!this.canProduce(data)) amount = 0;
+			if (data.resources[adjuster.resource] === game.getResourceMaximum(adjuster.resource)) amount = 0;
+			if (!this.canProduce(data, game)) amount = 0;
 
 			resources_per_tick[adjuster.resource] = resources_per_tick[adjuster.resource] + amount;
 		});
@@ -26,7 +26,7 @@ export class Converter extends Ticker {
 		return resources_per_tick;
 	}
 
-	canProduce(data)
+	canProduce(data, game)
 	{
 		let can_produce = true;
 		this.resource_adjusters.forEach((adjuster) => {
@@ -37,9 +37,10 @@ export class Converter extends Ticker {
 				can_produce =  false;
 			}
 
+			// this is awkward. We might have to move this code up a level, or pass in the maximum, or try not caring about it here...
 			if (adjuster.amount_per_tick > 0
 				&& (data.resources[adjuster.resource] === undefined
-					|| data.resources[adjuster.resource] === data.resource_maximums[adjuster.resource])
+					|| data.resources[adjuster.resource] === game.getResourceMaximum([adjuster.resource]))
 			) {
 				can_produce = false;
 			}

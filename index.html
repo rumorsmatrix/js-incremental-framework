@@ -46,11 +46,7 @@
 
 	<p>
 		<button id="tickers_baker_purchase_btn" onclick="purchaseTicker('baker')">
-			Add an automatic cookie baker
-		</button>
-
-		<button id="ticker_upgrades_super_oven_purchase_btn" onclick="purchaseTickerUpgrade('baker', 'super_oven')">
-			Purchase a Super Oven
+			Add an automatic cookie baker (+1/s cookies)
 		</button>
 	</p>
 
@@ -61,9 +57,38 @@
 		</li>
 	</ul>
 
- 	<p>
+	<div id="ticker_upgrades_super_oven_container">
+		<p>
+			<button id="ticker_upgrades_super_oven_purchase_btn" onclick="purchaseTickerUpgrade('baker', 'super_oven')">
+				Purchase a Super Oven (+1 cookie/s per baker)
+			</button>
+		</p>
+		<ul>
+			<li>Owned: <span id="ticker_upgrades_super_oven_amount">0</span></li>
+			<li>
+				Cost to purchase: <span id="ticker_upgrades_super_oven_cost"></span>
+			</li>
+		</ul>
+	</div>
+
+	<div id="ticker_upgrades_baking_tray_container">
+		<p>
+			<button id="ticker_upgrades_baking_tray_purchase_btn" onclick="purchaseTickerUpgrade('baker', 'baking_tray')">
+				Purchase a baking tray (+50 maximum cookies per baker)
+			</button>
+		</p>
+		<ul>
+			<li>Owned: <span id="ticker_upgrades_baking_tray_amount">0</span></li>
+			<li>
+				Cost to purchase: <span id="ticker_upgrades_baking_tray_cost"></span>
+			</li>
+		</ul>
+	</div>
+
+
+	<p>
 		<button id="tickers_unicorn_purchase_btn" onclick="purchaseTicker('unicorn');">
-			Hire a unicorn (eats a cookie and then shits)
+			Hire a unicorn (eats 1 cookie/s and then does 1 shit/s)
 		</button>
 	</p>
 	<ul>
@@ -87,11 +112,7 @@ let game = new Game();
 
 // Main game loop
 setInterval(() => {
-	Object.keys(game.data.tickers).forEach((tickers_type) => {
-		for (let i = 0; i < game.data.tickers[tickers_type]; i++) {
-			game.tickers[tickers_type].tick(game.data);
-		}
-	});
+	game.tick();
 
 }, game.tick_interval);
 
@@ -108,7 +129,7 @@ setInterval(() => {
 window.game = game;
 
 window.doTick = (ticker_type) => {
-	game.tickers[ticker_type].tick(game.data);
+	game.tickers[ticker_type].tick(game.data, game);
 	game.updateResources();
 	game.updateTickers();
 };

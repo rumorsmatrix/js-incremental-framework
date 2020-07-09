@@ -10,3 +10,11 @@
     background: #4c4 linear-gradient(to right, #2b2, #4b4);
     width: 100%;
 }
+
+#ticker_upgrades_super_oven_container,
+#ticker_upgrades_baking_tray_container{
+    margin-left: 40px;
+    border-left: 4px solid #888;
+    padding-left: 8px;
+}
+

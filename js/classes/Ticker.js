@@ -2,10 +2,10 @@ import {getPurchaseCosts} from './partials/purchasing.js';
 
 export class Ticker
 {
-
 	constructor(internal_name) {
 		this.internal_name = internal_name;
 		this.purchase_costs = [];
+		this.maximum_purchases = false;
 		this.resource_adjusters = [];
 		this.upgrades = {};
 	}
@@ -28,6 +28,17 @@ export class Ticker
 		return this;
 	}
 
+	setMaximumPurchases(value)
+	{
+		this.maximum_purchases = value;
+		return this;
+	}
+
+	getMaximumPurchases()
+	{
+		return this.maximum_purchases;
+	}
+
 	getResourcesPerTick(data)
 	{
 		let resources_per_tick = {};
@@ -37,7 +48,6 @@ export class Ticker
 			}
 
 			let amount = adjuster.getAmountPerTick(this.upgrades, data);
-			if (data.resources[adjuster.resource] === data.resource_maximums[adjuster.resource]) amount = 0;
 			resources_per_tick[adjuster.resource] = resources_per_tick[adjuster.resource] + amount;
 		});
 
@@ -49,10 +59,10 @@ export class Ticker
 		return getPurchaseCosts(this, ((data.tickers[this.internal_name] !== undefined) ? data.tickers[this.internal_name] : 0));
 	}
 
-	tick(data)
+	tick(data, game)
 	{
 		let diff = 0;
-		this.resource_adjusters.forEach((adjuster) => diff += adjuster.apply(this.upgrades, data));
+		this.resource_adjusters.forEach((adjuster) => diff += adjuster.apply(this.upgrades, data, game));
 		return diff;
 	}
 
@@ -79,23 +89,23 @@ export class ResourceAdjuster
 				// apply bonus from this matching upgrade
 				let upgrade = upgrades[purchased_upgrade];
 				let number_purchased = data.ticker_upgrades[purchased_upgrade];
-
-				amount = amount + (upgrade.getFlatBonus() * number_purchased);
-				if (upgrade.getMultiplier()) amount = amount * (upgrade.getMultiplier() * number_purchased);
+				if (upgrade.resource === this.resource) {
+					amount = amount + (upgrade.getFlatBonus() * number_purchased);
+					if (upgrade.getMultiplier()) amount = amount * (upgrade.getMultiplier() * number_purchased);
+				}
 			}
 		});
 
 		return amount;
 	}
 
-	apply(upgrades, data)
+	apply(upgrades, data, game)
 	{
 		if (data.resources[this.resource] === undefined) data.resources[this.resource] = 0;
 		let amount = this.getAmountPerTick(upgrades, data);
 
 		if (data.resource_maximums[this.resource] !== undefined) {
-			let max = data.resource_maximums[this.resource];
-
+			let max = game.getResourceMaximum(this.resource);
 			if ((data.resources[this.resource] + amount) >= max) {
 				amount = max - data.resources[this.resource];
 			}
@@ -113,6 +123,7 @@ export class PurchaseCost
 	{
 		this.resource = resource;
 		this.base_cost = base_cost;
+		// noinspection JSUnusedGlobalSymbols
 		this.multiplier = multiplier;
 	}
 }

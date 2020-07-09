@@ -22,6 +22,15 @@ export class Game
 		})
 	}
 
+	tick()
+	{
+		Object.keys(this.data.tickers).forEach((tickers_type) => {
+			for (let i = 0; i < game.data.tickers[tickers_type]; i++) {
+				game.tickers[tickers_type].tick(this.data, this);
+			}
+		});
+	}
+
 	canAffordThing(thing)
 	{
 		let purchase_costs = thing.getPurchaseCosts(this.data);
@@ -58,6 +67,10 @@ export class Game
 		// must have at least one of the parent ticker to upgrade
 		if (this.data.tickers[ticker_type] === undefined || this.data.tickers[ticker_type] === 0) return false;
 
+		// make sure we don't allow buying too many
+		let number_owned = (this.data.ticker_upgrades[upgrade_type] !== undefined) ? this.data.ticker_upgrades[upgrade_type] : 0;
+		if (number_owned >= upgrade.getMaximumPurchases()) return false;
+
 		if (!this.canAffordThing(upgrade)) return false;
 		let purchase_costs = upgrade.getPurchaseCosts(this.data);
 
@@ -86,17 +99,54 @@ export class Game
 		return this;
 	}
 
+	getResourceMaximum(resource_index)
+	{
+		let maximum = (data.resource_maximums[resource_index] !== undefined) ? data.resource_maximums[resource_index] : 0;
+
+		Object.keys(this.data.tickers).forEach((ticker_index) => {
+			if (this.data.tickers[ticker_index] === 0) return;
+
+			let ticker = this.tickers[ticker_index];
+			let number_of_tickers = this.data.tickers[ticker_index];
+
+			Object.keys(ticker.upgrades).forEach((upgrade_index) => {
+				let upgrade = ticker.upgrades[upgrade_index];
+				let number_of_upgrades = ((this.data.ticker_upgrades[upgrade_index] !== undefined)
+					? this.data.ticker_upgrades[upgrade_index]
+					: 0
+				);
+
+				if (upgrade.getResource() !== resource_index) return;
+				let bonus = ((upgrade.getMaximumFlatBonus() !== undefined) ? upgrade.getMaximumFlatBonus() : 0);
+				bonus = bonus * number_of_upgrades;
+
+				//console.log(resource_index + ':' + bonus);
+				maximum = maximum + bonus * number_of_tickers;
+			});
+		});
+
+		return maximum;
+	}
+
+
 
 	getResourcesPerTick()
 	{
 		let resources_per_tick = {};
 
 		Object.keys(this.data.tickers).forEach((ticker_type) => {
-			let new_resources_per_tick = this.tickers[ticker_type].getResourcesPerTick(this.data);
+			let new_resources_per_tick = this.tickers[ticker_type].getResourcesPerTick(this.data, this);
 
 			Object.keys(new_resources_per_tick).forEach((resource) => {
 				if (resources_per_tick[resource] === undefined) resources_per_tick[resource] = 0;
+
 				resources_per_tick[resource] = resources_per_tick[resource] + (new_resources_per_tick[resource] * this.data.tickers[ticker_type]);
+
+				// move this maximums check out to the _game_ level, Tickers shouldn't care
+				if (data.resources[resource] === this.getResourceMaximum(resource)) {
+					resources_per_tick[resource] = 0;
+				}
+
 			});
 		});
 
@@ -162,14 +212,14 @@ export class Game
 
 			if (this.data.resource_maximums[resource] !== undefined) {
 				let elem_per_tick = document.getElementById('resources_'+ resource + '_max');
-				if (elem_per_tick) elem_per_tick.innerHTML = this.data.resource_maximums[resource].toLocaleString(undefined, {
+				if (elem_per_tick) elem_per_tick.innerHTML = this.getResourceMaximum(resource).toLocaleString(undefined, {
 					minimumFractionDigits: 0,
 					maximumFractionDigits: 0
 				});
 			}
 
 			// update percentages and progress bars
-			let total = this.data.resource_maximums[resource];
+			let total = this.getResourceMaximum(resource);
 			let width = ((this.data.resources[resource] / total) * 100);
 			if (total === undefined) width = 100;
 
@@ -185,45 +235,83 @@ export class Game
 
 	updateTickers()
 	{
-		Object.keys(this.tickers).forEach((ticker) => {
+		Object.keys(this.tickers).forEach((ticker_index) => {
 
-			// update amount owned
-			let elem = document.getElementById('tickers_' + ticker + '_amount');
-			if (elem) {
-				elem.innerHTML = ((this.data.tickers[ticker] !== undefined)
-					? this.data.tickers[ticker]
-					: 0);
-			}
+			let ticker = this.tickers[ticker_index];
+			this.updateThingPurchaseElements(ticker, 'tickers', this.data.tickers, false);
 
-			// update things based on purchase cost
-			let costs = this.tickers[ticker].getPurchaseCosts(this.data);
-			let can_purchase = true;
-
-			Object.keys(costs).forEach((resource) => {
-				if (!(this.data.resources[resource] !== undefined && this.data.resources[resource] >= costs[resource])) {
-					can_purchase = false;
-				}
+			Object.keys(ticker.upgrades).forEach((upgrade_index) => {
+				let upgrade = ticker.upgrades[upgrade_index];
+				let parents_owned = ((this.data.tickers[ticker_index] !== undefined) ? this.data.tickers[ticker_index] : 0);
+				this.updateThingPurchaseElements(upgrade, 'ticker_upgrades', this.data.ticker_upgrades, parents_owned);
 			});
 
-			elem = document.getElementById('tickers_' + ticker + '_cost');
-			if (elem) {
-				let str = '<ul>';
-				Object.keys(costs).forEach((resource) => {
-					str += '<li>'
-						+ ((this.data.resources[resource] !== undefined && this.data.resources[resource] >= costs[resource])
-							? '<span class="can-afford">'
-							: '<span class="cannot-afford">')
-						+ this.getResourceName(resource) + ' x ' + costs[resource]
-						+ '</span>'
-						+ '</li>';
-				});
-				str += '</ul>';
-				elem.innerHTML = str;
-			}
-
-			elem = document.getElementById('tickers_' + ticker + '_purchase_btn');
-			if (elem) elem.disabled = !can_purchase;
 		});
+	}
+
+
+	updateThingPurchaseElements(thing, element_prefix, data_storage, parents_owned)
+	{
+		element_prefix = element_prefix + '_';
+		let thing_index = thing.internal_name;
+
+		// update amount owned
+		let elem = document.getElementById(element_prefix + thing_index + '_amount');
+		if (elem) {
+			elem.innerHTML = ((data_storage[thing_index] !== undefined)
+				? data_storage[thing_index]
+				: 0);
+		}
+
+		// update things based on purchase cost
+		let costs = thing.getPurchaseCosts(this.data);
+		let can_afford_whole_purchase = true;
+
+		Object.keys(costs).forEach((resource) => {
+			if (!(this.data.resources[resource] !== undefined && this.data.resources[resource] >= costs[resource])) {
+				can_afford_whole_purchase = false;
+			}
+		});
+
+		elem = document.getElementById(element_prefix + thing_index + '_cost');
+		if (elem) {
+			let str = ((can_afford_whole_purchase) ? '<ul class="can-afford">' : '<ul class="cannot-afford">');
+			Object.keys(costs).forEach((resource) => {
+				str += '<li>'
+					+ ((this.data.resources[resource] !== undefined && this.data.resources[resource] >= costs[resource])
+						? '<span class="can-afford">'
+						: '<span class="cannot-afford">')
+					+ this.getResourceName(resource) + ' x ' + costs[resource]
+					+ '</span>'
+					+ '</li>';
+			});
+			str += '</ul>';
+			elem.innerHTML = str;
+		}
+
+		elem = document.getElementById(element_prefix + thing_index + '_purchase_btn');
+		if (elem) elem.disabled = !can_afford_whole_purchase;
+
+		let number_owned = (data_storage[thing_index] !== undefined) ? data_storage[thing_index] : 0;
+		let maximum_purchases = thing.getMaximumPurchases();
+		let can_purchase_another = ((maximum_purchases !== false)
+			? (number_owned < thing.getMaximumPurchases())
+			: true
+		);
+
+		elem = document.getElementById(element_prefix + thing_index + '_container');
+		if (elem) {
+			if (parents_owned === false || parents_owned >= thing.getParentPurchasesRequired() && can_purchase_another) {
+				elem.classList.add('available-for-purchase');
+				elem.classList.remove('unavailable-for-purchase');
+				elem.style.height = elem.offsetHeight + 'px';
+
+			} else {
+				elem.classList.add('unavailable-for-purchase');
+				elem.classList.remove('available-for-purchase');
+			}
+		}
+
 	}
 
 }
