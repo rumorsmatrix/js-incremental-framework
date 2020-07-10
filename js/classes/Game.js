@@ -25,8 +25,8 @@ export class Game
 	tick()
 	{
 		Object.keys(this.data.tickers).forEach((tickers_type) => {
-			for (let i = 0; i < game.data.tickers[tickers_type]; i++) {
-				game.tickers[tickers_type].tick(this.data, this);
+			for (let i = 0; i < this.data.tickers[tickers_type]; i++) {
+				this.tickers[tickers_type].tick(this.data, this);
 			}
 		});
 	}
@@ -47,7 +47,7 @@ export class Game
 
 	purchaseTicker(type)
 	{
-		let ticker = game.tickers[type];
+		let ticker = this.tickers[type];
 		if (!this.canAffordThing(ticker)) return false;
 		let purchase_costs = ticker.getPurchaseCosts(this.data);
 
@@ -55,7 +55,7 @@ export class Game
 			this.data.resources[cost] = this.data.resources[cost] - purchase_costs[cost];
 		});
 
-		game.addTicker(type);
+		this.addTicker(type);
 		return true;
 	}
 
@@ -89,6 +89,15 @@ export class Game
 		this.data.tickers[type] = this.data.tickers[type] + 1;
 		this.updateTickers();
 		return this;
+	}
+
+	removeTicker(type)
+	{
+		if (this.data.tickers[type] === undefined) return this;
+        this.data.tickers[type] = this.data.tickers[type] - 1;
+		if (this.data.tickers[type] < 0) this.data.tickers[type] = 0;
+        this.updateTickers();
+        return this;
 	}
 
 	addTickerUpgrade(type)
@@ -204,6 +213,7 @@ export class Game
 				if (resources_per_tick[resources_per_tick] === undefined) resources_per_tick[resources_per_tick] = 0;
 				let rpt = (resources_per_tick[resource] * (1000 / this.tick_interval));
 				if (isNaN(rpt)) rpt = 0;
+
 				elem_per_tick.innerHTML = rpt.toLocaleString(undefined, {
 					minimumFractionDigits: 2,
 					maximumFractionDigits: 2

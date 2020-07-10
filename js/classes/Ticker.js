@@ -62,7 +62,7 @@ export class Ticker
 	tick(data, game)
 	{
 		let diff = 0;
-		this.resource_adjusters.forEach((adjuster) => diff += adjuster.apply(this.upgrades, data, game));
+		this.resource_adjusters.forEach((adjuster) => diff += adjuster.apply(this.upgrades, game.data, game));
 		return diff;
 	}
 

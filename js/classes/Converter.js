@@ -5,7 +5,7 @@ export class Converter extends Ticker {
 	tick(data, game)
 	{
 		if (!this.canProduce(data, game)) return;
-		this.resource_adjusters.forEach((adjuster) => adjuster.apply(this.upgrades, data));
+		this.resource_adjusters.forEach((adjuster) => adjuster.apply(this.upgrades, data, game));
 	}
 
 	getResourcesPerTick(data, game)
